@@ -2,18 +2,14 @@ import matplotlib.pyplot as plt
 import numpy as np
 import torch
 import torch.nn as nn
-# import model
-# import datasetGenerator as DG
+import model
+import Dataset
 from torch.utils.data import DataLoader
 
 # File/feature handling:
-filePath = 'data'
-numAngles = 16
-imDim = 64
+filePath = './data/data'
 ContinueLearning = False
-modelNum = 706
-numInputs = 1000
-
+modelNum = 000
 
 # Hyperparameters:
 num_epochs = 25
@@ -34,12 +30,12 @@ else:
 
 print('using device:', device)
 
-
 # Constructing data handlers:
-imDims = (imDim,imDim)
-Dataset1 = myData = DG.Dataset(list(np.linspace(1,1,numInputs).astype(int)),'{}/scans'.format(filePath),'{}/sv_bp'.format(filePath),'.jpg','.jpg', numAngles,imDim)
-BP_DataLoader = DataLoader(Dataset1, batch_size=batchSize)
-print('Dataloader initialized. Number of inputs: {}'.format(numInputs))
+data = Dataset.CT_Dataset(filePath)
+imDims = data.imgShape()[0]
+numAngles = data[0].shape[0]-1
+data_DL = DataLoader(data, batch_size=batchSize)
+print('Dataloader initialized. Size of dataset: {}'.format(len(data)))
 
 # Constructing NN:
 myNN = model.DBP_NN(channelsIn=numAngles)
@@ -64,10 +60,14 @@ bestLoss = 10e10
 for epoch in range(num_epochs):
     batchLoss = 0
     numBatches = 0
-    for idx, im in enumerate(BP_DataLoader):
+    for idx, im in enumerate(data_DL):
         optimizer.zero_grad()
-        out = myNN(im[0][:,:,:,:].cuda())
-        loss = criterion(out,im[1][:,:,:,:].cuda())
+        if device == 'cuda':
+            out = myNN(im[:,1:,:,:].cuda())
+            loss = criterion(out,im[:,1:,:,:].cuda())
+        else:
+            out = myNN(im[:, 1:, :, :])
+            loss = criterion(out, im[:, 0, :, :])
         batchLoss += float(loss)
         numBatches +=1
         loss.backward()
@@ -91,8 +91,8 @@ plt.title('Model ID: {}\nBatch Size: {}, Initial Learning Rate: {},\n LRS_Gamma:
 plt.show()
 
 myNN.eval()
-for i in np.random.randint(0,numInputs-1,5):
-    im = Dataset1[i]
+for i in np.random.randint(0,len(data)-1,5):
+    im = data[i]
     testOrig = im[1][0,:,:]
 
     testOut = myNN(torch.unsqueeze(torch.tensor(im[0][:,:,:]),0).cuda())
@@ -106,7 +106,7 @@ for i in np.random.randint(0,numInputs-1,5):
     plt.imshow(testOut.cpu().detach().numpy())
     plt.title('DCNN Output\nNum Angles: {}, Best Loss: {:.2f}'.format(numAngles, bestLoss), y=-.2)
     plt.axis('off')
-    plt.suptitle('Dataset Size: {}, Model ID: {}'.format(len(Dataset1),myNN.modelId))
+    plt.suptitle('Dataset Size: {}, Model ID: {}'.format(len(data),myNN.modelId))
     plt.show()
 
 

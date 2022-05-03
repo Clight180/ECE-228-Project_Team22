@@ -11,8 +11,8 @@ class CT_Dataset(torch.utils.data.Dataset):
         file_no1 /
             trueIm.jpg
             back_projections_file_no1 /
-                file_no1_0
-                file_no1_1
+                file_no1_0.jpg
+                file_no1_1.jpg
                 ...
         file_no2 /
         ...
@@ -43,6 +43,11 @@ class CT_Dataset(torch.utils.data.Dataset):
         return len(self.dp_table)
 
     def __getitem__(self, idx):
+        '''
+        Returns a tensor of shape [n,h,w]. n: number of slices + 1, (h,w) size of image
+        :param idx:
+        :return:
+        '''
         folderId = self.dp_table[idx][1]
         folderDir = self.dir + '/' + folderId
         tensorOut = read_image(folderDir + '/' + folderId + self.filetype, mode=torchvision.io.ImageReadMode.GRAY)
@@ -54,7 +59,3 @@ class CT_Dataset(torch.utils.data.Dataset):
 
     def imgShape(self):
         return self[0][0].shape
-
-data = CT_Dataset('./data/data')
-
-print(list(data.imgShape()))
