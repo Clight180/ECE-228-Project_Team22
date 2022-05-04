@@ -55,7 +55,7 @@ class CT_Dataset(torch.utils.data.Dataset):
         for i in range(len(trainIm_table)):
             trainImSlice = read_image(folderDir + self.trainImDir + folderId + '/' + trainIm_table[i][1], mode=torchvision.io.ImageReadMode.GRAY)
             tensorOut = torch.cat((tensorOut, trainImSlice))
-        return tensorOut
+        return tensorOut.float()
 
     def imgShape(self):
         return self[0][0].shape

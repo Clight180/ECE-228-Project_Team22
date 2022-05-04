@@ -14,7 +14,7 @@ modelNum = 000
 # Hyperparameters:
 num_epochs = 25
 batchSize = 10
-learningRate = 1e-2
+learningRate = 5e-2
 weightDecay = 1e-5
 AMSGRAD = True
 LRS_Gamma = .912
@@ -58,21 +58,19 @@ bestLoss = 10e10
 
 # Training routine:
 for epoch in range(num_epochs):
-    batchLoss = 0
-    numBatches = 0
+    Loss = 0
     for idx, im in enumerate(data_DL):
         optimizer.zero_grad()
-        if device == 'cuda':
+        if device.type == 'cuda':
             out = myNN(im[:,1:,:,:].cuda())
-            loss = criterion(out,im[:,1:,:,:].cuda())
+            batchLoss = criterion(out,im[:,1:,:,:].cuda())
         else:
             out = myNN(im[:, 1:, :, :])
-            loss = criterion(out, im[:, 0, :, :])
-        batchLoss += float(loss)
-        numBatches +=1
-        loss.backward()
+            batchLoss = criterion(out, im[:, 0, :, :])
+        Loss += float(batchLoss)
+        batchLoss.backward()
         optimizer.step()
-    trainLoss.append(batchLoss/numBatches)
+    trainLoss.append(Loss/len(data))
     if trainLoss[-1] < bestLoss:
         bestLoss = trainLoss[-1]
         bestModel = myNN.state_dict()
@@ -93,9 +91,9 @@ plt.show()
 myNN.eval()
 for i in np.random.randint(0,len(data)-1,5):
     im = data[i]
-    testOrig = im[1][0,:,:]
+    testOrig = im[0,:,:]
 
-    testOut = myNN(torch.unsqueeze(torch.tensor(im[0][:,:,:]),0).cuda())
+    testOut = myNN(torch.unsqueeze(torch.tensor(im[1:,:,:]),0).cuda())
     testOut = torch.squeeze(testOut)
     plt.figure()
     plt.subplot(1,2,1)
@@ -108,7 +106,4 @@ for i in np.random.randint(0,len(data)-1,5):
     plt.axis('off')
     plt.suptitle('Dataset Size: {}, Model ID: {}'.format(len(data),myNN.modelId))
     plt.show()
-
-
-
 
