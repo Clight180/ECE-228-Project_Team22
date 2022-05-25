@@ -1,7 +1,7 @@
 import torch.nn as nn
 import numpy as np
 
-filt1,filt2 = 64, 64
+filt1,filt2 = 160, 160
 kernelSize = (3,3)
 Padding = 1
 
