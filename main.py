@@ -116,8 +116,8 @@ print('Time at training completion: {:.2f}'.format(time.time()-start))
 
 ##### POST-TRAINING ROUTINE #####
 
-
 myNN.load_state_dict(bestModel)
+config.modelNum = myNN.modelId
 torch.save(bestModel,'{}/NN_StateDict_{}.pt'.format('./savedModels/',myNN.modelId))
 
 plt.figure()
@@ -130,7 +130,7 @@ for i in np.random.randint(0,len(data)-1,5):
     im = data[i]
     testOrig = im[0,:,:]
 
-    testOut = myNN(torch.unsqueeze(torch.tensor(im[1:,:,:]),0).cuda())
+    testOut = myNN(torch.unsqueeze(im[1:,:,:].cuda(),0))
     testOut = torch.squeeze(testOut)
     plt.figure()
     plt.subplot(1,2,1)
@@ -145,5 +145,5 @@ for i in np.random.randint(0,len(data)-1,5):
     plt.show()
 
 print('Time to completion: {:.2f}'.format(time.time()-start))
-exit('Training Complete')
+exit('Training Complete. Dataset num: {}, Model num: {}'.format(config.datasetID,config.modelNum))
 

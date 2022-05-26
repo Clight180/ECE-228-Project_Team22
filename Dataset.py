@@ -7,9 +7,10 @@ import numpy.matlib as nm
 import time
 from tqdm import tqdm
 import DatasetGenerator
+import config
 
 class CT_Dataset(torch.utils.data.Dataset):
-    def __init__(self, dir, imDims, nSlices, datasetID=000, datasetSize=10):
+    def __init__(self,dsize=10):
         '''
         dir points to directory with all training images:
 
@@ -24,35 +25,44 @@ class CT_Dataset(torch.utils.data.Dataset):
         :param datasetID:
         :param datasetSize:
         '''
-        self.dir = dir
-        self.nSlices = nSlices
-        self.imDims = imDims
 
-        if datasetID == 000:
-            self.filesList = DatasetGenerator.genData(img_size=imDims,sizeData=datasetSize)
+        ### store vars in obj ###
+        self.processedImsPath = config.processedImsPath
+        self.nSlices = config.numAngles
+        self.imDims = config.imDims
+        self.datasetID = config.datasetID
+        self.datasetSize = dsize
+
+        ### generate dataset if 000, else load ###
+        if self.datasetID == 000:
+            self.filesList = DatasetGenerator.genData()
 
             time.sleep(.01)
             print('Creating slice projections.')
             time.sleep(.01)
 
-            data = torch.empty((0,nSlices+1,imDims,imDims))
-            theta = np.linspace(0., 180., nSlices, endpoint=False)
+            ### loop vars ###
+            data = torch.empty((0,self.nSlices+1,self.imDims,self.imDims))
+            theta = np.linspace(0., 180., self.nSlices, endpoint=False)
+            folderDir = self.processedImsPath
+            dimFolder = '/imDims_{}/'.format(config.imDims)
 
+            ### create slice projections, stack data points in large tensor ###
             for idx in tqdm(range(len(self.filesList))):
                 time.sleep(.01)
 
+                ### read processed image ###
                 fileId = self.filesList[idx]
-                folderDir = self.dir
-                num_slices = self.nSlices
                 try:
-                    tensorOut = cv2.imread(folderDir + fileId, cv2.COLOR_BGR2GRAY)
+                    tensorOut = cv2.imread(folderDir + dimFolder + fileId, cv2.COLOR_BGR2GRAY)
                     sinogram = radon(tensorOut, theta=theta, circle=False, preserve_range=True)
                 except:
                     print('File not readable, idx: {}'.format(idx))
                     continue
 
+                ### create nSlices number of slices of processed image ###
                 sv_bp = []
-                for i in range(num_slices):
+                for i in range(self.nSlices):
                     sv = np.expand_dims(sinogram[:, i], 1)
                     sv_p = nm.repmat(sv, 1, sinogram.shape[0] * 2)
                     rotated = rotate(sv_p, angle=90 + theta[i], reshape=False)
@@ -63,6 +73,8 @@ class CT_Dataset(torch.utils.data.Dataset):
                 tensorOut = torch.unsqueeze(torch.tensor(tensorOut, dtype=torch.float32), dim=0)
                 sv_bp_t = torch.tensor(sv_bp, dtype=torch.float32)
                 tensorOut = torch.cat((tensorOut, sv_bp_t))
+
+                ### stack datapoint to data tensor ###
                 data = torch.cat((data,torch.unsqueeze(tensorOut,dim=0)))
 
                 time.sleep(.01)
@@ -70,13 +82,15 @@ class CT_Dataset(torch.utils.data.Dataset):
                     print(' {} images done'.format(idx+1))
                 time.sleep(.01)
 
-            datasetID = np.random.randint(100,999)
-            print('dataset_{}.pt complete. {} images processed'.format(datasetID, len(self.filesList)))
+            ### save tensor dataset ###
+            config.datasetID = np.random.randint(100,999)
+            print('dataset_{}.pt complete. {} images processed'.format(config.datasetID, len(self.filesList)))
             self.data = data
-            torch.save(data, './TensorData/dataset_{}.pt'.format(datasetID))
+            torch.save(data, './TensorData/dataset_{}.pt'.format(config.datasetID))
 
+        ### load pre-built tensor dataset ###
         else:
-            self.data = torch.load('./TensorData/dataset_{}.pt'.format(datasetID))
+            self.data = torch.load('./TensorData/dataset_{}.pt'.format(self.datasetID))
 
     def __len__(self):
         return len(self.data)

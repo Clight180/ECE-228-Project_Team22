@@ -4,8 +4,9 @@ import cv2
 from tqdm import tqdm
 import random
 import time
+import config
 
-def genData(img_size, sizeData):
+def genData():
     '''
 
     :param img_size:
@@ -13,42 +14,43 @@ def genData(img_size, sizeData):
     :return:
     '''
 
-    data_set_path = './processed_images/'
-    if not os.path.isdir(data_set_path): os.mkdir(data_set_path)
+    ### create dim folder if not exists ###
+    dimFolder = '/imDims_{}/'.format(config.imDims)
+    if not os.path.isdir(config.processedImsPath + dimFolder): os.mkdir(config.processedImsPath + dimFolder)
 
-    imgset_path = './raw_images/'
-    files = os.listdir(imgset_path)
+    ### load and shuffle from original dataset ###
+    files = os.listdir(config.rawImsPath)
     random.shuffle(files)
-
-    datasetFiles = files[0:sizeData]
+    datasetFiles = files[0:config.trainSize]
 
     time.sleep(.01)
     print('Preprocessing Images.')
     time.sleep(.01)
 
-    for item in tqdm(datasetFiles):
+    for fileID in tqdm(datasetFiles):
         time.sleep(.01)
 
-        if os.path.exists(data_set_path+item):
+        ### point to process, if exists skip ###
+        filePath = config.processedImsPath + dimFolder + fileID
+        if os.path.exists(filePath):
             continue
 
-        path = imgset_path + '\\' + item
-
-        ### resize and apply filter ###
-        image = cv2.imread(path)
+        ### load image as grayscale ###
+        image = cv2.imread(config.rawImsPath + fileID)
         grayImage = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-        grayImage = cv2.resize(grayImage, [img_size, img_size])
-        grayImage[int(img_size * 5 / 6):] = 0
 
+        ### preprocessing ###
+        grayImage = cv2.resize(grayImage, [config.imDims, config.imDims])
+        grayImage[int(config.imDims * 5 / 6):] = 0
         kernel = np.ones((5, 5), np.uint8)
         kernel2 = np.ones((3, 3), np.uint8)
         grayImage = cv2.erode(grayImage, kernel, iterations=1)
         grayImage = cv2.dilate(grayImage, kernel2, iterations=1)
         grayImage = cv2.erode(grayImage, kernel2, iterations=1)
         grayImage = cv2.dilate(grayImage, kernel2, iterations=1)
-
         clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
         grayImage = clahe.apply(grayImage)
 
-        cv2.imwrite(data_set_path + item, grayImage)
+        ### save to folder, return list of files ###
+        cv2.imwrite(config.processedImsPath + dimFolder + fileID, grayImage)
     return datasetFiles
