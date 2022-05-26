@@ -6,26 +6,34 @@ import model
 import Dataset
 from torch.utils.data import DataLoader
 from torchsummary import summary
+import time
+from tqdm import tqdm
+
+start = time.time()
 
 # File/feature handling:
-filePath = './New_folder/newData/'
+filePath = './processed_images/'
 ContinueLearning = False
-modelNum = 000
+modelNum = 000 # Set to pre-existing model to avoid training from epoch 1 , ow 000
+datasetID = 000 #Set to pre-existing dataset to avoid generating a new one, ow 000
+numIms = 500
 imDims = 160
 numAngles = 24
-verifyDat = False
+
 
 # Hyperparameters:
-num_epochs = 50
+num_epochs = 10
 batchSize = 10
 learningRate = 1e-3
 weightDecay = 1e-5
 AMSGRAD = True
-LRS_Gamma = .912
+LRS_Gamma = .95
 
 # GPU acceleration:
 USE_GPU = True
 dtype = torch.float32
+
+##### BEGIN TRAINING ROUTINE #####
 
 if USE_GPU and torch.cuda.is_available():
     device = torch.device('cuda')
@@ -35,14 +43,16 @@ else:
 print('using device:', device)
 
 # Constructing data handlers:
-data = Dataset.CT_Dataset(filePath, imDims, numAngles, verifyDat)
+data = Dataset.CT_Dataset(filePath, imDims, numAngles,datasetID=datasetID, datasetSize=numIms)
 data_DL = DataLoader(data, batch_size=batchSize)
-print('Dataloader initialized. Size of dataset: {}'.format(len(data)))
+print('dataset_{}.pt loaded. Size of dataset: {}'.format(datasetID, len(data)))
+
+print('Time elapsed: {:.2f}'.format(time.time()-start))
 
 # Constructing NN:
-myNN = model.DBP_NN(channelsIn=numAngles)
+myNN = model.DBP_NN(channelsIn=numAngles, filtSize=imDims)
 summary(myNN)
-print('Model being generated. Model ID: {}'.format(myNN.modelId))
+print('Model generated. Model ID: {}'.format(myNN.modelId))
 
 
 if ContinueLearning:
@@ -63,24 +73,26 @@ bestLoss = 10e10
 for epoch in range(num_epochs):
     Loss = 0
     numBatches = 0
-    for idx, im in enumerate(data_DL):
+
+    time.sleep(.02)
+
+    for idx, im in enumerate(tqdm(data_DL)):
         batchLoss = 0
         numBatches+=1
         optimizer.zero_grad()
+        targetIm = im[:,0,:,:].cuda()
+        input = im[:, 1:, :, :].cuda()
         if device.type == 'cuda':
-            im = im[:, 1:, :, :].cuda()
-            out = myNN(im)
-            batchLoss = criterion(out,im[:,1:,:,:].cuda())
+            out = myNN(input)
+            batchLoss = criterion(torch.squeeze(out,dim=1),targetIm)
         else:
-            im = torch.nn.functional.normalize(im[:, 1:, :, :])
-            out = myNN(im)
-            batchLoss = criterion(out, im[:, 0, :, :])
+            raise NotImplementedError
         Loss += float(batchLoss)
         batchLoss.backward()
         optimizer.step()
-        del im
-        del batchLoss
+
     trainLoss.append(Loss/numBatches)
+
     if trainLoss[-1] < bestLoss:
         bestLoss = trainLoss[-1]
         bestModel = myNN.state_dict()
@@ -91,7 +103,7 @@ for epoch in range(num_epochs):
 print('done')
 
 myNN.load_state_dict(bestModel)
-torch.save(bestModel,'{}/NN_StateDict_{}.pt'.format(filePath,myNN.modelId))
+torch.save(bestModel,'{}/NN_StateDict_{}.pt'.format('./savedModels/',myNN.modelId))
 
 plt.figure()
 plt.plot(trainLoss)
@@ -116,4 +128,6 @@ for i in np.random.randint(0,len(data)-1,5):
     plt.axis('off')
     plt.suptitle('Dataset Size: {}, Model ID: {}'.format(len(data),myNN.modelId))
     plt.show()
+
+
 
