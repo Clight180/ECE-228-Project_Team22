@@ -1,5 +1,7 @@
 import torch.nn as nn
 import numpy as np
+import torch
+import config
 
 kernelSize = (3,3)
 Padding = 1
@@ -8,6 +10,7 @@ class DBP_NN(nn.Module):
     def __init__(self,channelsIn,filtSize):
         super(DBP_NN,self).__init__()
         filt1 = filt2 = filtSize
+        torch.set_default_dtype(config.dtype)
         self.modelId = np.random.randint(100,999)
 
         self.c1 = nn.Sequential(

@@ -16,6 +16,7 @@ start = time.time()
 
 if config.USE_GPU and torch.cuda.is_available():
     device = torch.device('cuda')
+    torch.cuda.empty_cache()
 else:
     device = torch.device('cpu')
 
@@ -70,13 +71,15 @@ for epoch in range(config.num_epochs):
         targetIm = im[:,0,:,:].cuda()
         input = im[:, 1:, :, :].cuda()
         if device.type == 'cuda':
-            out = myNN(input)
+            out = myNN(input.type(config.dtype))
             trainBatchLoss = criterion(torch.squeeze(out, dim=1), targetIm)
         else:
             raise NotImplementedError
         trainEpochLoss += float(trainBatchLoss)
         trainBatchLoss.backward()
         optimizer.step()
+        targetIm.detach()
+        input.detach()
     scheduler.step()
     trainLoss.append(trainEpochLoss / len(train_DL))
 
@@ -93,6 +96,8 @@ for epoch in range(config.num_epochs):
             else:
                 raise NotImplementedError
             valEpochLoss += float(valBatchLoss)
+            targetIm.detach()
+            input.detach()
         validationLoss.append(valEpochLoss / len(test_DL))
 
     ### store best model ###

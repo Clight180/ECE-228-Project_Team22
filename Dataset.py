@@ -70,8 +70,8 @@ class CT_Dataset(torch.utils.data.Dataset):
                     sv_bp.append(rotated_cropped[..., None])
                 sv_bp = np.dstack(sv_bp)
                 sv_bp = sv_bp.transpose(2, 0, 1)
-                tensorOut = torch.unsqueeze(torch.tensor(tensorOut, dtype=torch.float32), dim=0)
-                sv_bp_t = torch.tensor(sv_bp, dtype=torch.float32)
+                tensorOut = torch.unsqueeze(torch.tensor(tensorOut, dtype=config.dtype), dim=0)
+                sv_bp_t = torch.tensor(sv_bp, dtype=config.dtype)
                 tensorOut = torch.cat((tensorOut, sv_bp_t))
 
                 ### stack datapoint to data tensor ###
@@ -80,14 +80,15 @@ class CT_Dataset(torch.utils.data.Dataset):
             ### save tensor dataset ###
             datasetID = np.random.randint(100, 999)
             print('dataset_{}.pt complete. {} images processed'.format(datasetID, len(self.filesList)))
-            self.data = data
+            self.data = data.type(config.dtype)
             if saveDataset:
                 torch.save(data, './TensorData/dataset_{}.pt'.format(datasetID))
                 config.datasetID = datasetID
 
         ### load pre-built tensor dataset ###
         else:
-            self.data = torch.load('./TensorData/dataset_{}.pt'.format(self.datasetID))
+            data = torch.load('./TensorData/dataset_{}.pt'.format(self.datasetID))
+            self.data = data.type(config.dtype)
             print('dataset_{}.pt loaded. {} images'.format(datasetID, len(self.data)))
 
     def __len__(self):
