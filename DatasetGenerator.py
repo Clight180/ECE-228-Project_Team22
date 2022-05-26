@@ -5,17 +5,24 @@ from tqdm import tqdm
 import random
 import time
 
-data_set_path = './processed_images/'
-if not os.path.isdir(data_set_path): os.mkdir(data_set_path)
-
-imgset_path = './raw_images/'
-files = os.listdir(imgset_path)
-random.shuffle(files)
-
 def genData(img_size, sizeData):
+    '''
+
+    :param img_size:
+    :param sizeData:
+    :return:
+    '''
+
+    data_set_path = './processed_images/'
+    if not os.path.isdir(data_set_path): os.mkdir(data_set_path)
+
+    imgset_path = './raw_images/'
+    files = os.listdir(imgset_path)
+    random.shuffle(files)
+
     datasetFiles = files[0:sizeData]
 
-    time.sleep(.1)
+    time.sleep(.01)
     print('Preprocessing Images.')
     time.sleep(.01)
 

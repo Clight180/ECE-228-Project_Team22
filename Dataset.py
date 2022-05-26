@@ -12,27 +12,17 @@ class CT_Dataset(torch.utils.data.Dataset):
     def __init__(self, dir, imDims, nSlices, datasetID=000, datasetSize=10):
         '''
         dir points to directory with all training images:
+
         dir/
             im1.jpg
             im2.jpg
             ...
 
-        Use: >> data = Dataset.CT_Dataset('./data/data')
-             >> data[0]
-             Out[8]:
-             tensor([[2, 2, 2,  ..., 2, 2, 2],
-                     [2, 2, 2,  ..., 2, 2, 2],
-                     [2, 2, 2,  ..., 2, 2, 2],
-                     ...,
-                     [2, 2, 2,  ..., 2, 2, 2],
-                     [2, 2, 2,  ..., 2, 2, 2],
-                     [2, 2, 2,  ..., 2, 2, 2]], dtype=torch.uint8)
-
-             >> len(data): returns number of data points
-
-             >> data.imgShape(): returns a list of int image shape
-
-        :param dir: dir is the location where data point subfolders are located
+        :param dir:
+        :param imDims:
+        :param nSlices:
+        :param datasetID:
+        :param datasetSize:
         '''
         self.dir = dir
         self.nSlices = nSlices
@@ -74,8 +64,11 @@ class CT_Dataset(torch.utils.data.Dataset):
                 sv_bp_t = torch.tensor(sv_bp, dtype=torch.float32)
                 tensorOut = torch.cat((tensorOut, sv_bp_t))
                 data = torch.cat((data,torch.unsqueeze(tensorOut,dim=0)))
+
+                time.sleep(.01)
                 if (idx+1)%(int(len(self.filesList)/4))==0:
                     print(' {} images done'.format(idx+1))
+                time.sleep(.01)
 
             datasetID = np.random.randint(100,999)
             print('dataset_{}.pt complete. {} images processed'.format(datasetID, len(self.filesList)))
@@ -84,10 +77,6 @@ class CT_Dataset(torch.utils.data.Dataset):
 
         else:
             self.data = torch.load('./TensorData/dataset_{}.pt'.format(datasetID))
-
-
-
-
 
     def __len__(self):
         return len(self.data)

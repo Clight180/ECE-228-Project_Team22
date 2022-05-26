@@ -11,15 +11,20 @@ from tqdm import tqdm
 
 start = time.time()
 
+
+##### CONFIGURATIONS #####
+
+
 # File/feature handling:
-filePath = './processed_images/'
+processedImsPath = './processed_images/'
+rawImsPath = './raw_images/'
+tensorDataPath = './TensorData/'
 ContinueLearning = False
 modelNum = 000 # Set to pre-existing model to avoid training from epoch 1 , ow 000
-datasetID = 000 #Set to pre-existing dataset to avoid generating a new one, ow 000
-numIms = 500
+datasetID = 431 #Set to pre-existing dataset to avoid generating a new one, ow 000
+numIms = 250
 imDims = 160
-numAngles = 24
-
+numAngles = 16
 
 # Hyperparameters:
 num_epochs = 10
@@ -33,7 +38,9 @@ LRS_Gamma = .95
 USE_GPU = True
 dtype = torch.float32
 
-##### BEGIN TRAINING ROUTINE #####
+
+##### PRE-TRAINING SETUP #####
+
 
 if USE_GPU and torch.cuda.is_available():
     device = torch.device('cuda')
@@ -43,20 +50,19 @@ else:
 print('using device:', device)
 
 # Constructing data handlers:
-data = Dataset.CT_Dataset(filePath, imDims, numAngles,datasetID=datasetID, datasetSize=numIms)
+data = Dataset.CT_Dataset(processedImsPath, imDims, numAngles, datasetID=datasetID, datasetSize=numIms)
 data_DL = DataLoader(data, batch_size=batchSize)
 print('dataset_{}.pt loaded. Size of dataset: {}'.format(datasetID, len(data)))
 
-print('Time elapsed: {:.2f}'.format(time.time()-start))
+print('Time of dataset completion: {:.2f}'.format(time.time()-start))
 
 # Constructing NN:
 myNN = model.DBP_NN(channelsIn=numAngles, filtSize=imDims)
 summary(myNN)
 print('Model generated. Model ID: {}'.format(myNN.modelId))
 
-
 if ContinueLearning:
-    myNN.load_state_dict(torch.load('{}/NN_StateDict_{}.pt'.format(filePath,modelNum)))
+    myNN.load_state_dict(torch.load('{}/NN_StateDict_{}.pt'.format(processedImsPath, modelNum)))
     print('Loaded model: {}'.format(modelNum))
 
 myNN.to(device)
@@ -68,6 +74,10 @@ scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=LRS_Gamma)
 trainLoss = []
 bestModel = myNN.state_dict()
 bestLoss = 10e10
+
+
+##### TRAINING ROUTINE #####
+
 
 # Training routine:
 for epoch in range(num_epochs):
@@ -101,6 +111,11 @@ for epoch in range(num_epochs):
     print('{}/{} epochs completed. Loss: {}'.format(epoch+1,num_epochs,float(trainLoss[-1])))
 
 print('done')
+print('Time at training completion: {:.2f}'.format(time.time()-start))
+
+
+##### POST-TRAINING ROUTINE #####
+
 
 myNN.load_state_dict(bestModel)
 torch.save(bestModel,'{}/NN_StateDict_{}.pt'.format('./savedModels/',myNN.modelId))
@@ -129,5 +144,6 @@ for i in np.random.randint(0,len(data)-1,5):
     plt.suptitle('Dataset Size: {}, Model ID: {}'.format(len(data),myNN.modelId))
     plt.show()
 
-
+print('Time to completion: {:.2f}'.format(time.time()-start))
+exit('Training Complete')
 
