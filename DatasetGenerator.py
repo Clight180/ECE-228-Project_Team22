@@ -6,7 +6,7 @@ import random
 import time
 import config
 
-def genData():
+def genData(dsize=10):
     '''
 
     :param img_size:
@@ -21,16 +21,17 @@ def genData():
     ### load and shuffle from original dataset ###
     files = os.listdir(config.rawImsPath)
     random.shuffle(files)
-    datasetFiles = files[0:config.trainSize]
+    datasetFiles = files[0:dsize]
 
     time.sleep(.01)
     print('Preprocessing Images.')
     time.sleep(.01)
 
+    ### preprocess images ###
     for fileID in tqdm(datasetFiles):
         time.sleep(.01)
 
-        ### point to process, if exists skip ###
+        ### point to image, if exists skip ###
         filePath = config.processedImsPath + dimFolder + fileID
         if os.path.exists(filePath):
             continue

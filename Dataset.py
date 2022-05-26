@@ -10,7 +10,7 @@ import DatasetGenerator
 import config
 
 class CT_Dataset(torch.utils.data.Dataset):
-    def __init__(self,dsize=10):
+    def __init__(self,datasetID=000, dsize=10, saveDataset=False):
         '''
         dir points to directory with all training images:
 
@@ -30,12 +30,12 @@ class CT_Dataset(torch.utils.data.Dataset):
         self.processedImsPath = config.processedImsPath
         self.nSlices = config.numAngles
         self.imDims = config.imDims
-        self.datasetID = config.datasetID
+        self.datasetID = datasetID
         self.datasetSize = dsize
 
         ### generate dataset if 000, else load ###
         if self.datasetID == 000:
-            self.filesList = DatasetGenerator.genData()
+            self.filesList = DatasetGenerator.genData(self.datasetSize)
 
             time.sleep(.01)
             print('Creating slice projections.')
@@ -77,20 +77,18 @@ class CT_Dataset(torch.utils.data.Dataset):
                 ### stack datapoint to data tensor ###
                 data = torch.cat((data,torch.unsqueeze(tensorOut,dim=0)))
 
-                time.sleep(.01)
-                if (idx+1)%(int(len(self.filesList)/4))==0:
-                    print(' {} images done'.format(idx+1))
-                time.sleep(.01)
-
             ### save tensor dataset ###
-            config.datasetID = np.random.randint(100,999)
-            print('dataset_{}.pt complete. {} images processed'.format(config.datasetID, len(self.filesList)))
+            datasetID = np.random.randint(100, 999)
+            print('dataset_{}.pt complete. {} images processed'.format(datasetID, len(self.filesList)))
             self.data = data
-            torch.save(data, './TensorData/dataset_{}.pt'.format(config.datasetID))
+            if saveDataset:
+                torch.save(data, './TensorData/dataset_{}.pt'.format(datasetID))
+                config.datasetID = datasetID
 
         ### load pre-built tensor dataset ###
         else:
             self.data = torch.load('./TensorData/dataset_{}.pt'.format(self.datasetID))
+            print('dataset_{}.pt loaded. {} images'.format(datasetID, len(self.data)))
 
     def __len__(self):
         return len(self.data)
@@ -114,7 +112,7 @@ class CT_Dataset(torch.utils.data.Dataset):
         """
         width, height = img.shape[1], img.shape[0]
 
-        # process crop width and height for max available dimension
+        #### process crop width and height for max available dimension ###
         crop_width = dim[0] if dim[0] < img.shape[1] else img.shape[1]
         crop_height = dim[1] if dim[1] < img.shape[0] else img.shape[0]
         mid_x, mid_y = int(width / 2), int(height / 2)
