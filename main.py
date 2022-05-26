@@ -14,7 +14,6 @@ start = time.time()
 
 ##### PRE-TRAINING SETUP #####
 
-
 if config.USE_GPU and torch.cuda.is_available():
     device = torch.device('cuda')
 else:
@@ -34,12 +33,16 @@ print('Time of dataset completion: {:.2f}'.format(time.time()-start))
 
 ### Constructing NN ###
 myNN = model.DBP_NN(channelsIn=config.numAngles, filtSize=config.imDims)
+if config.modelNum != 000:
+    myNN.load_state_dict(torch.load('{}/NN_StateDict_{}.pt'.format(config.savedModelsPath, config.modelNum)))
+    myNN.modelId = config.modelNum
+    print('Loaded model num: {}'.format(myNN.modelId))
+else:
+    config.modelNum = myNN.modelId
+    print('Model generated. Model ID: {}'.format(myNN.modelId))
+
 if config.showSummary:
     summary(myNN)
-print('Model generated. Model ID: {}'.format(myNN.modelId))
-if config.ContinueLearning:
-    myNN.load_state_dict(torch.load('{}/NN_StateDict_{}.pt'.format(config.processedImsPath, config.modelNum)))
-    print('Loaded model: {}'.format(config.modelNum))
 myNN.to(device)
 criterion = nn.MSELoss()
 optimizer = torch.optim.Adam(myNN.parameters(),lr=config.learningRate,
@@ -97,7 +100,7 @@ for epoch in range(config.num_epochs):
         bestLoss = trainLoss[-1]
         bestModel = myNN.state_dict()
 
-    print('{}/{} epochs completed. Train loss: {}, validation loss: {}'.format(epoch+1,config.num_epochs,
+    print('{}/{} epochs completed. Train loss: {:.4f}, validation loss: {:.4f}'.format(epoch+1,config.num_epochs,
                                                                                float(trainLoss[-1]),
                                                                                float(validationLoss[-1])))
 

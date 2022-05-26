@@ -4,8 +4,8 @@ import torch
 processedImsPath = './processed_images/'
 rawImsPath = './raw_images/'
 tensorDataPath = './TensorData/'
-ContinueLearning = False
-modelNum = 000 # Set to pre-existing model to avoid training from epoch 1 , ow 000
+savedModelsPath = './savedModels/'
+modelNum = 114 # Set to pre-existing model to avoid training from epoch 1 , ow 000
 datasetID = 727 #Set to pre-existing dataset to avoid generating a new one, ow 000
 trainSize = 100
 testSize = int(trainSize*.2)
