@@ -9,17 +9,18 @@ savedFigsPath = './saved_figs'
 
 
 # Feature handling
-modelNum = 777 # Set to pre-existing model to avoid training from epoch 1 , ow 000
-datasetID = 771 # Set to pre-existing dataset to avoid generating a new one, ow 000
-trainSize = 1000
+modelNum = 000 # Set to pre-existing model to avoid training from epoch 1 , ow 000
+datasetID = 000 # Set to pre-existing dataset to avoid generating a new one, ow 000
+trainSize = 50
 testSize = int(trainSize*.2)
-imDims = 128
+imDims = 64
 numAngles = 64
 showSummary = False
+printFigs = True
 
 
 # Hyperparameters:
-num_epochs = 15
+num_epochs = 1
 batchSize = 10
 learningRate = 1e-3
 weightDecay = 1e-5
@@ -35,5 +36,5 @@ dtype = torch.float32
 # Runtime vars
 theta = None
 dimFolder = '/imSize_{}/'.format(imDims)
-anglesFolder = '/imDims_{}/'.format(imDims)
+anglesFolder = '/nAngles_{}/'.format(numAngles)
 experimentFolder = '/Dataset_{}_Model_{}/'.format(datasetID,modelNum)
