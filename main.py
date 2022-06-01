@@ -220,7 +220,7 @@ if __name__ == '__main__':
             config.imDims = specs[1]
             config.dimFolder = '/imSize_{}/'.format(config.imDims)
             config.trainSize = specs[2]
-            testSize = int(config.trainSize * .2)
+            config.testSize = int(config.trainSize * .2)
             config.modelNum = specs[3]
             config.datasetID = specs[4]
             config.experimentFolder = '/Dataset_{}_Model_{}/'.format(config.datasetID, config.modelNum)
