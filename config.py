@@ -6,11 +6,11 @@ rawImsPath = './raw_images/'
 tensorDataPath = './TensorData/'
 savedModelsPath = './savedModels/'
 savedFigsPath = './saved_figs'
-modelNum = 411 # Set to pre-existing model to avoid training from epoch 1 , ow 000
-datasetID = 608 # Set to pre-existing dataset to avoid generating a new one, ow 000
+modelNum = 000 # Set to pre-existing model to avoid training from epoch 1 , ow 000
+datasetID = 000 # Set to pre-existing dataset to avoid generating a new one, ow 000
 trainSize = 1000
 testSize = int(trainSize*.2)
-imDims = 64
+imDims = 128
 numAngles = 64
 showSummary = False
 
@@ -29,3 +29,6 @@ dtype = torch.float32
 
 # Runtime vars
 theta = None
+dimFolder = '/imSize_{}/'.format(imDims)
+anglesFolder = '/imDims_{}/'.format(imDims)
+experimentFolder = '/Dataset_{}_Model_{}/'.format(datasetID,modelNum)

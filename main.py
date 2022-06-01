@@ -125,13 +125,15 @@ torch.save(bestModel,'{}/NN_StateDict_{}.pt'.format('./savedModels/',myNN.modelI
 
 ### Figure saving ###
 
-dimFolder = '/imSize_{}/'.format(config.imDims)
-anglesFolder = '/imDims_{}/'.format(config.imDims)
-experimentFolder = '/Dataset_{}_Model_{}/'.format(config.datasetID,config.modelNum)
-if not os.path.isdir(config.savedFigsPath + dimFolder): os.mkdir(config.savedFigsPath + dimFolder)
-if not os.path.isdir(config.savedFigsPath + dimFolder + anglesFolder): os.mkdir(config.savedFigsPath + dimFolder + anglesFolder)
-if not os.path.isdir(config.savedFigsPath + dimFolder + anglesFolder + experimentFolder): os.mkdir(config.savedFigsPath + dimFolder + anglesFolder + experimentFolder)
-dir = config.savedFigsPath + dimFolder + anglesFolder + experimentFolder
+savedFigsPath = config.savedFigsPath
+dimFolder = config.dimFolder
+anglesFolder = config.anglesFolder
+experimentFolder = config.experimentFolder
+if not os.path.isdir(savedFigsPath + dimFolder): os.mkdir(savedFigsPath + dimFolder)
+if not os.path.isdir(savedFigsPath + dimFolder + anglesFolder): os.mkdir(savedFigsPath + dimFolder + anglesFolder)
+dir = savedFigsPath + dimFolder + anglesFolder + experimentFolder
+if not os.path.isdir(dir): os.mkdir(dir)
+
 
 
 ### Observing Results ###

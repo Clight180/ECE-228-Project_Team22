@@ -82,7 +82,10 @@ class CT_Dataset(torch.utils.data.Dataset):
             print('dataset_{}.pt complete. {} images processed'.format(datasetID, len(self.filesList)))
             self.data = data.type(config.dtype)
             if saveDataset:
-                torch.save(data, './TensorData/dataset_{}.pt'.format(datasetID))
+                dimFolder = config.dimFolder
+                anglesFolder = config.anglesFolder
+                tensorDataPath = config.tensorDataPath
+                torch.save(data, tensorDataPath + dimFolder + anglesFolder + 'dataset_{}_size_{}.pt'.format(datasetID,config.trainSize))
                 config.datasetID = datasetID
 
         ### load pre-built tensor dataset ###
