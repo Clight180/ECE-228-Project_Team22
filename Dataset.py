@@ -43,7 +43,7 @@ class CT_Dataset(torch.utils.data.Dataset):
 
             ### loop vars ###
             data = torch.empty((0,self.nSlices+1,self.imDims,self.imDims))
-            theta = np.linspace(0., 180., self.nSlices, endpoint=False)
+            config.theta = np.linspace(0., 180., self.nSlices, endpoint=False)
             folderDir = self.processedImsPath
             dimFolder = '/imDims_{}/'.format(config.imDims)
 
@@ -55,7 +55,7 @@ class CT_Dataset(torch.utils.data.Dataset):
                 fileId = self.filesList[idx]
                 try:
                     tensorOut = cv2.imread(folderDir + dimFolder + fileId, cv2.COLOR_BGR2GRAY)
-                    sinogram = radon(tensorOut, theta=theta, circle=False, preserve_range=True)
+                    sinogram = radon(tensorOut, theta=config.theta, circle=False, preserve_range=True)
                 except:
                     print('File not readable, idx: {}'.format(idx))
                     continue
@@ -65,7 +65,7 @@ class CT_Dataset(torch.utils.data.Dataset):
                 for i in range(self.nSlices):
                     sv = np.expand_dims(sinogram[:, i], 1)
                     sv_p = nm.repmat(sv, 1, sinogram.shape[0] * 2)
-                    rotated = rotate(sv_p, angle=90 + theta[i], reshape=False)
+                    rotated = rotate(sv_p, angle=90 + config.theta[i], reshape=False)
                     rotated_cropped = self.center_crop(rotated, tensorOut.shape)
                     sv_bp.append(rotated_cropped[..., None])
                 sv_bp = np.dstack(sv_bp)

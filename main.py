@@ -9,6 +9,7 @@ from torchsummary import summary
 import time
 from tqdm import tqdm
 import config
+from skimage.transform import radon, iradon
 
 start = time.time()
 
@@ -124,29 +125,63 @@ plt.plot(trainLoss, label='Train Loss')
 plt.plot(validationLoss, label='Validation Loss')
 plt.yscale('log')
 plt.legend(loc='upper right')
-plt.title('Model ID: {}\nBatch Size: {}, Initial Learning Rate: {},\n '
-          'LRS_Gamma: {}, amsgrad: {}, weight decay: {}'.format(myNN.modelId,config.batchSize,
+plt.title('Model ID: {}, Dataset ID {}\nBatch Size: {}, Initial Learning Rate: {},\n '
+          'LRS_Gamma: {}, amsgrad: {}, weight decay: {}'.format(myNN.modelId,config.datasetID,config.batchSize,
                                                                 config.learningRate,config.LRS_Gamma,
                                                                 config.AMSGRAD,config.weightDecay))
 plt.show()
 
 myNN.eval()
-for i in np.random.randint(0, len(train_data) - 1, 5):
+for i in np.random.randint(0, len(train_data) - 1, 3):
     im = train_data[i]
     testOrig = im[0,:,:]
+    testOut_unsqueezed = myNN(torch.unsqueeze(im[1:,:,:].cuda(),0))
+    testOut = torch.squeeze(testOut_unsqueezed)
 
-    testOut = myNN(torch.unsqueeze(im[1:,:,:].cuda(),0))
-    testOut = torch.squeeze(testOut)
+    sinogram = radon(testOrig.numpy(), theta=config.theta, circle=False, preserve_range=True)
+    FBP_Out = iradon(sinogram, theta=config.theta,circle=False,preserve_range=True)
+
     plt.figure()
-    plt.subplot(1,2,1)
     plt.imshow(testOrig)
-    plt.title('Original\nIm Size: {}'.format((config.imDims,config.imDims)))
+    plt.title('Original - Im Size: {}, Model/Data: {}/{}'.format((config.imDims, config.imDims), config.modelNum,
+                                                                   config.datasetID))
     plt.axis('off')
-    plt.subplot(1,2,2)
+    plt.show()
+
+    plt.figure()
     plt.imshow(testOut.cpu().detach().numpy())
-    plt.title('DCNN Output\nNum Angles: {}, Best Loss: {:.2e}'.format(config.numAngles, bestLoss), y=-.2)
+    plt.title('DCNN Output - Im Size: {}, Model/Data: {}/{}'.format((config.imDims, config.imDims), config.modelNum,
+                                                                   config.datasetID))
     plt.axis('off')
-    plt.suptitle('Dataset Size: {}, Model ID: {}'.format(len(train_data), myNN.modelId))
+    plt.show()
+
+    plt.figure()
+    plt.imshow(FBP_Out)
+    plt.title('DCNN Output - Im Size: {}, Model/Data: {}/{}'.format((config.imDims, config.imDims), config.modelNum,
+                                                                      config.datasetID))
+    plt.axis('off')
+    plt.show()
+
+    plt.figure()
+
+    plt.subplot(2,2,1)
+    plt.imshow(testOrig)
+    plt.title('Original')
+    plt.axis('off')
+
+    plt.subplot(2,2,2)
+    plt.imshow(testOut.cpu().detach().numpy())
+    plt.title('DCNN')
+    plt.axis('off')
+
+    plt.subplot(2, 2, 3)
+    plt.imshow(FBP_Out)
+    plt.title('Filtered Back Projection', y=-.2)
+    plt.axis('off')
+
+    plt.subplot(2,2,4)
+    plt.text(.2,.3,'Dataset Size: {}\nDataset ID: {}\nModel ID: {}\nNum Angles: {}\nBest Loss: {:.2e}'.format(config.trainSize,config.datasetID,config.modelNum,config.numAngles,bestLoss))
+    plt.axis('off')
     plt.show()
 
 print('Time to completion: {:.2f}'.format(time.time()-start))
