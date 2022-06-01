@@ -91,7 +91,8 @@ class CT_Dataset(torch.utils.data.Dataset):
 
         ### load pre-built tensor dataset ###
         else:
-            data = torch.load('./TensorData/dataset_{}.pt'.format(self.datasetID))
+            filePath = config.tensorDataPath + config.dimFolder + config.anglesFolder
+            data = torch.load(filePath + 'dataset_{}_size_{}.pt'.format(self.datasetID,config.trainSize))
             self.data = data.type(config.dtype)
             print('dataset_{}.pt loaded. {} images'.format(datasetID, len(self.data)))
 
