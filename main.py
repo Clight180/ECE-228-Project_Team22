@@ -10,6 +10,8 @@ import time
 from tqdm import tqdm
 import config
 from skimage.transform import radon, iradon
+import os
+import cv2
 
 start = time.time()
 
@@ -66,7 +68,7 @@ for epoch in range(config.num_epochs):
     myNN.train()
     trainEpochLoss = 0
     ### train batch training ###
-    for idx, im in enumerate(tqdm(train_DL)):
+    for iter, im in enumerate(tqdm(train_DL)):
         trainBatchLoss = 0
         optimizer.zero_grad()
         targetIm = im[:,0,:,:].cuda()
@@ -88,7 +90,7 @@ for epoch in range(config.num_epochs):
     myNN.eval()
     with torch.no_grad():
         valEpochLoss = 0
-        for idx, im in enumerate(test_DL):
+        for iter, im in enumerate(test_DL):
             targetIm = im[:, 0, :, :].cuda()
             input = im[:, 1:, :, :].cuda()
             if device.type == 'cuda':
@@ -120,6 +122,20 @@ myNN.load_state_dict(bestModel)
 config.modelNum = myNN.modelId
 torch.save(bestModel,'{}/NN_StateDict_{}.pt'.format('./savedModels/',myNN.modelId))
 
+
+### Figure saving ###
+
+dimFolder = '/imSize_{}/'.format(config.imDims)
+anglesFolder = '/imDims_{}/'.format(config.imDims)
+experimentFolder = '/Dataset_{}_Model_{}/'.format(config.datasetID,config.modelNum)
+if not os.path.isdir(config.savedFigsPath + dimFolder): os.mkdir(config.savedFigsPath + dimFolder)
+if not os.path.isdir(config.savedFigsPath + dimFolder + anglesFolder): os.mkdir(config.savedFigsPath + dimFolder + anglesFolder)
+if not os.path.isdir(config.savedFigsPath + dimFolder + anglesFolder + experimentFolder): os.mkdir(config.savedFigsPath + dimFolder + anglesFolder + experimentFolder)
+dir = config.savedFigsPath + dimFolder + anglesFolder + experimentFolder
+
+
+### Observing Results ###
+
 plt.figure()
 plt.plot(trainLoss, label='Train Loss')
 plt.plot(validationLoss, label='Validation Loss')
@@ -129,10 +145,11 @@ plt.title('Model ID: {}, Dataset ID {}\nBatch Size: {}, Initial Learning Rate: {
           'LRS_Gamma: {}, amsgrad: {}, weight decay: {}'.format(myNN.modelId,config.datasetID,config.batchSize,
                                                                 config.learningRate,config.LRS_Gamma,
                                                                 config.AMSGRAD,config.weightDecay))
+plt.savefig(dir + 'LossPlot.jpg')
 plt.show()
 
 myNN.eval()
-for i in np.random.randint(0, len(train_data) - 1, 3):
+for iter, i in enumerate(np.random.randint(0, len(train_data) - 1, 3)):
     im = train_data[i]
     testOrig = im[0,:,:]
     testOut_unsqueezed = myNN(torch.unsqueeze(im[1:,:,:].cuda(),0))
@@ -141,26 +158,11 @@ for i in np.random.randint(0, len(train_data) - 1, 3):
     sinogram = radon(testOrig.numpy(), theta=config.theta, circle=False, preserve_range=True)
     FBP_Out = iradon(sinogram, theta=config.theta,circle=False,preserve_range=True)
 
-    plt.figure()
-    plt.imshow(testOrig)
-    plt.title('Original - Im Size: {}, Model/Data: {}/{}'.format((config.imDims, config.imDims), config.modelNum,
-                                                                   config.datasetID))
-    plt.axis('off')
-    plt.show()
 
-    plt.figure()
-    plt.imshow(testOut.cpu().detach().numpy())
-    plt.title('DCNN Output - Im Size: {}, Model/Data: {}/{}'.format((config.imDims, config.imDims), config.modelNum,
-                                                                   config.datasetID))
-    plt.axis('off')
-    plt.show()
+    cv2.imwrite(dir + 'Original_{}.jpg'.format(i + 1),testOrig.numpy())
+    cv2.imwrite(dir + 'DCNN_{}.jpg'.format(iter + 1), testOut.cpu().detach().numpy())
+    cv2.imwrite(dir + 'FBP_{}.jpg'.format(iter + 1), FBP_Out)
 
-    plt.figure()
-    plt.imshow(FBP_Out)
-    plt.title('DCNN Output - Im Size: {}, Model/Data: {}/{}'.format((config.imDims, config.imDims), config.modelNum,
-                                                                      config.datasetID))
-    plt.axis('off')
-    plt.show()
 
     plt.figure()
 
@@ -180,9 +182,11 @@ for i in np.random.randint(0, len(train_data) - 1, 3):
     plt.axis('off')
 
     plt.subplot(2,2,4)
-    plt.text(.2,.3,'Dataset Size: {}\nDataset ID: {}\nModel ID: {}\nNum Angles: {}\nBest Loss: {:.2e}'.format(config.trainSize,config.datasetID,config.modelNum,config.numAngles,bestLoss))
+    plt.text(.2,.3,'Dataset Size: {}\nDataset ID: {}\nModel ID: {}\n Im Size: {}\nNum Angles: {}\nBest Loss: {:.2e}'.format(config.trainSize,config.datasetID,config.modelNum,(config.imDims,config.imDims),config.numAngles,bestLoss))
     plt.axis('off')
+    plt.savefig(dir + 'Subplot_{}.jpg'.format(iter + 1))
     plt.show()
+
 
 print('Time to completion: {:.2f}'.format(time.time()-start))
 exit('Training Complete. Dataset num: {}, Model num: {}'.format(config.datasetID,config.modelNum))
