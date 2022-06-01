@@ -8,7 +8,7 @@ import config
 
 def genData(dsize=10):
     '''
-
+    Generates data from raw images. Does preprocessing, saves in folders and returns data.
     :param img_size:
     :param sizeData:
     :return:

@@ -9,18 +9,18 @@ savedFigsPath = './saved_figs'
 
 
 # Feature handling
+numAngles = 64
+imDims = 128
+trainSize = 1000
+testSize = int(trainSize*.2)
 modelNum = 000 # Set to pre-existing model to avoid training from epoch 1 , ow 000
 datasetID = 000 # Set to pre-existing dataset to avoid generating a new one, ow 000
-trainSize = 50
-testSize = int(trainSize*.2)
-imDims = 64
-numAngles = 64
 showSummary = False
 printFigs = True
 
 
 # Hyperparameters:
-num_epochs = 1
+num_epochs = 25
 batchSize = 10
 learningRate = 1e-3
 weightDecay = 1e-5

@@ -122,6 +122,7 @@ def Experiment():
 
     myNN.load_state_dict(bestModel)
     config.modelNum = myNN.modelId
+    config.experimentFolder = '/Dataset_{}_Model_{}/'.format(config.datasetID, config.modelNum)
     torch.save(bestModel,'{}/NN_StateDict_{}.pt'.format('./savedModels/',myNN.modelId))
 
 
@@ -187,7 +188,7 @@ def Experiment():
         plt.axis('off')
 
         plt.subplot(2,2,4)
-        plt.text(.2,.3,'Dataset Size: {}\nDataset ID: {}\nModel ID: {}\n Im Size: {}\nNum Angles: {}\nBest Loss: {:.2e}'.format(config.trainSize,config.datasetID,config.modelNum,(config.imDims,config.imDims),config.numAngles,bestLoss))
+        plt.text(.2,.3,'Dataset Size: {}\nDataset ID: {}\nModel ID: {}\nIm Size: {}\nNum Angles: {}\nnum Epochs: {}\nBest Loss: {:.2e}'.format(config.trainSize,config.datasetID,config.modelNum,(config.imDims,config.imDims),config.numAngles,config.num_epochs,bestLoss))
         plt.axis('off')
         plt.savefig(filePath + 'Subplot_{}.jpg'.format(iter + 1))
         if config.printFigs:
@@ -200,19 +201,30 @@ def Experiment():
 
 if __name__ == '__main__':
     '''
-    sys.argv[1:] : Array of nAngles intended
-    Run Experiments by number of angles
+    sys.argv[1:] : Array of specifications of Experiment(s),
+    numAngles imSize dSize modelNum datasetID numAngles imSize dSize modelNum datasetID ...
+    ^______________Experiment_Specs_________^ ^______________Experiment_Specs_________^
     '''
     config.printFigs = False
-    if sys.argv:
+    if len(sys.argv)>1:
+        numParams = 5
+        assert (len(sys.argv)-1)%numParams == 0, 'Incomplete experiment spec set!\n'
         args = sys.argv[1:]
-        nAnglesList = sys.argv[1:]
-        for nAngles in nAnglesList:
-            print('Running Experiment with {} num angles'.format(nAngles))
-            config.numAngles = int(nAngles)
+        argsList = [int(arg) for arg in sys.argv[1:]]
+        experimentList = list(range(1,len(argsList),numParams))
+        for experiment, idx in enumerate(experimentList):
+            specs = [argsList[i+experiment*numParams] for i in range(numParams)]
+            print('Running Experiment {} with {} num angles, {} imSize, {} dSize, {} modelNum, {} datasetID'.format(experiment+1,specs[0],(specs[1],specs[1]),specs[2],specs[3],specs[4]))
+            config.numAngles = specs[0]
             config.anglesFolder = '/nAngles_{}/'.format(config.numAngles)
-            config.modelNum = 000
-            config.datasetID = 000
+            config.imDims = specs[1]
+            config.dimFolder = '/imSize_{}/'.format(config.imDims)
+            config.trainSize = specs[2]
+            testSize = int(config.trainSize * .2)
+            config.modelNum = specs[3]
+            config.datasetID = specs[4]
+            config.experimentFolder = '/Dataset_{}_Model_{}/'.format(config.datasetID, config.modelNum)
             Experiment()
     else:
+        print('Running experiment with config.py specifications...')
         Experiment()

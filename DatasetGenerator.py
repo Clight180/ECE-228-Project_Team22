@@ -14,18 +14,16 @@ import sys
 class CT_Dataset(torch.utils.data.Dataset):
     def __init__(self,datasetID=000, dsize=10, saveDataset=False):
         '''
-        dir points to directory with all training images:
+        folderDir points to directory with all training images:
 
-        dir/
+        folderDir/
             im1.jpg
             im2.jpg
             ...
 
-        :param dir:
-        :param imDims:
-        :param nSlices:
         :param datasetID:
-        :param datasetSize:
+        :param dsize:
+        :param saveDataset:
         '''
 
         ### store vars in obj ###
@@ -89,6 +87,7 @@ class CT_Dataset(torch.utils.data.Dataset):
                 if not os.path.isdir(filePath): os.mkdir(filePath)
                 torch.save(data, filePath + 'dataset_{}_size_{}.pt'.format(datasetID,config.trainSize))
                 config.datasetID = datasetID
+                config.experimentFolder = '/Dataset_{}_Model_{}/'.format(config.datasetID, config.modelNum)
 
         ### load pre-built tensor dataset ###
         else:
@@ -129,13 +128,25 @@ class CT_Dataset(torch.utils.data.Dataset):
 
 if __name__ == '__main__':
     '''
-        sys.argv[1:] : Array of nAngles intended
-        Create datasets by array of angles
-        '''
-    nAnglesList = sys.argv[1:]
-    for nAngles in nAnglesList:
-        print('Creating tensor data for num angles: {}, dataset size: {}, im size: {}'.format(nAngles,config.trainSize, (config.imDims, config.imDims)))
-        config.numAngles = int(nAngles)
-        config.anglesFolder = '/nAngles_{}/'.format(config.numAngles)
-        _ = CT_Dataset(dsize=config.trainSize, saveDataset=True)
-        print(_)
+    sys.argv[1:] : Array of specifications for Dataset(s)
+    numAngles imSize dSize numAngles imSize dSize ...
+    ^______Dataset_______^ ^______Dataset_______^
+    '''
+    if len(sys.argv)>1:
+        numParams = 3
+        assert (len(sys.argv)-1)%numParams == 0, 'Incomplete dataset spec set!'
+        args = sys.argv[1:]
+        argsList = [int(arg) for arg in sys.argv[1:]]
+        datasetList = list(range(1, len(argsList), numParams))
+        for dataset, idx in enumerate(datasetList):
+            specs = [argsList[i + dataset * numParams] for i in range(numParams)]
+            print('Generating Dataset {} with {} num angles, {} imSize, {} dSize'.format(
+                dataset + 1, specs[0], (specs[1],specs[1]), specs[2]))
+            config.numAngles = specs[0]
+            config.anglesFolder = '/nAngles_{}/'.format(config.numAngles)
+            config.imDims = specs[1]
+            config.dimFolder = '/imSize_{}/'.format(config.imDims)
+            config.trainSize = specs[2]
+            CT_Dataset(dsize=config.trainSize, saveDataset=True)
+    else:
+        raise AssertionError('Dataset must be generated with args: numAngles imSize dSize numAngles imSize dSize ...')
