@@ -8,6 +8,7 @@ import time
 from tqdm import tqdm
 import DatasetGenerator
 import config
+import os
 
 class CT_Dataset(torch.utils.data.Dataset):
     def __init__(self,datasetID=000, dsize=10, saveDataset=False):
@@ -82,10 +83,10 @@ class CT_Dataset(torch.utils.data.Dataset):
             print('dataset_{}.pt complete. {} images processed'.format(datasetID, len(self.filesList)))
             self.data = data.type(config.dtype)
             if saveDataset:
-                dimFolder = config.dimFolder
-                anglesFolder = config.anglesFolder
-                tensorDataPath = config.tensorDataPath
-                torch.save(data, tensorDataPath + dimFolder + anglesFolder + 'dataset_{}_size_{}.pt'.format(datasetID,config.trainSize))
+                if not os.path.isdir(config.tensorDataPath + config.dimFolder): os.mkdir(config.tensorDataPath + config.dimFolder)
+                filePath =  config.tensorDataPath + config.dimFolder + config.anglesFolder
+                if not os.path.isdir(filePath): os.mkdir(filePath)
+                torch.save(data, filePath + 'dataset_{}_size_{}.pt'.format(datasetID,config.trainSize))
                 config.datasetID = datasetID
 
         ### load pre-built tensor dataset ###
