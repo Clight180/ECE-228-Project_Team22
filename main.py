@@ -155,7 +155,7 @@ def Experiment():
         plt.show()
 
     myNN.eval()
-    for iter, i in enumerate(np.random.randint(0, len(train_dataset) - 1, 3)):
+    for iter, i in enumerate(np.random.randint(0, len(train_dataset) - 1, 5)):
         im = train_dataset[i]
         testOrig = im[0,:,:]
         testOut_unsqueezed = myNN(torch.unsqueeze(im[1:,:,:].cuda(),0))
@@ -165,7 +165,7 @@ def Experiment():
         FBP_Out = iradon(sinogram, theta=config.theta,circle=False,preserve_range=True)
 
 
-        cv2.imwrite(filePath + 'Original_{}.jpg'.format(i + 1),testOrig.numpy())
+        cv2.imwrite(filePath + 'Original_{}.jpg'.format(iter + 1),testOrig.numpy())
         cv2.imwrite(filePath + 'DCNN_{}.jpg'.format(iter + 1), testOut.cpu().detach().numpy())
         cv2.imwrite(filePath + 'FBP_{}.jpg'.format(iter + 1), FBP_Out)
 

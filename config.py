@@ -20,7 +20,7 @@ printFigs = True
 
 
 # Hyperparameters:
-num_epochs = 25
+num_epochs = 35
 batchSize = 10
 learningRate = 1e-3
 weightDecay = 1e-5
