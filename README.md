@@ -1,4 +1,4 @@
-<p align="center" style="font-size:25vw">
+<p align="center" style="font-size:5vw">
 Deep Convolution Neural Network for CT-Image Reconstruction
 </p>
 
