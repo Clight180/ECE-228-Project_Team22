@@ -81,7 +81,10 @@ size of 1000.
 ## Hyperparameter tuning and configs
 
 Adjust any configurations to the experiment by inspecting the config.py file. Command line execution
-superceedes the following: numAngles, imDims, trainSize, modelNum, datasetID
+superceedes the following: numAngles, imDims, trainSize, modelNum, datasetID. 
+
+
+**There is no support for running on CPU at this time.**
 
 ## Voila
 
