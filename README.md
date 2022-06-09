@@ -1,12 +1,12 @@
-<p align="center" style="font-size:3.2vw">
+<p align="center" style="font-size:5vw">
 Deep Convolution Neural Network for CT-Image Reconstruction
 </p>
 
-<p align="center" style="font-size:2.7vw"> 
+<p align="center" style="font-size:4vw"> 
 UCSD - ECE 228 - Project Team 22 
 </p>
 
-<p align="center" style="font-size:2vw">
+<p align="center" style="font-size:3vw">
 Chris Light and Michael Ingerman
 </p>
 
