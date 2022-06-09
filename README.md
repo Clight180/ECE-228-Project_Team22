@@ -58,7 +58,7 @@ For example:
 > python DatasetGenerator.py 64 128 1000 128 128 1000
 
 This creates two separate tensor datasets with random ID allocation. 'dataset_123_size_1000.pt', 
-'dataset_934_size_1000.pt' (123 is random ID and file)
+'dataset_934_size_1000.pt' (123 and 934 are random ID assignment)
 
 ## Run Experiments
 
@@ -77,6 +77,11 @@ For example:
 This runs two experiments. One being a new dataset and model are created for num angles 64. The other is 
 an experiment loading dataset 555 and model 777 with num angles 128. Both are for image sizes 128x128 and dataset
 size of 1000.
+
+## Hyperparameter tuning and configs
+
+Adjust any configurations to the experiment by inspecting the config.py file. Command line execution
+superceedes the following: numAngles, imDims, trainSize, modelNum, datasetID
 
 ## Voila
 
