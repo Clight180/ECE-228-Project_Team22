@@ -1,0 +1,13 @@
+pyDataverse
+patool
+pydicom
+opencv-python
+numpy
+torch
+torchvision
+matplotlib
+scikit-image
+torch-summary
+tqdm
+scipy
+

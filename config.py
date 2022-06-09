@@ -9,8 +9,8 @@ savedFigsPath = './saved_figs'
 
 
 # Feature handling
-numAngles = 64
-imDims = 128
+numAngles = 160
+imDims = 160
 trainSize = 1000
 testSize = int(trainSize*.2)
 modelNum = 000 # Set to pre-existing model to avoid training from epoch 1 , ow 000

@@ -14,7 +14,7 @@ import sys
 class CT_Dataset(torch.utils.data.Dataset):
     def __init__(self,datasetID=000, dsize=10, saveDataset=False):
         '''
-        folderDir points to directory with all training images:
+        folderDir points to directory with all truth images:
 
         folderDir/
             im1.jpg
